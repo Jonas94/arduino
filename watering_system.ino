@@ -29,18 +29,21 @@ const int autoModeResetButtonPin = 12; // DIGITAL PIN 12
 const int statusButtonPin = 13;        // DIGITAL PIN 13
 const int relayPin = A0;               // ANALOG PIN 0
 
+const long MINUTE_IN_MS = 60 * 1000;
+const long HOUR_IN_MS = MINUTE_IN_MS * 60;
+
 const int numberOfStates = 4;
 const int numberOfLeds = 6;
 const int statusDelay = 1500;
 const int noFlow = 0;
-const int lowFlow = 5000; // Set good values for low mid high
-const int midFlow = 10000;
-const int highFlow = 15000;
+const unsigned long lowFlow = 5 * MINUTE_IN_MS; // Set good values for low mid high
+const unsigned long midFlow = 15 * MINUTE_IN_MS;
+const unsigned long highFlow = 30 * MINUTE_IN_MS;
 
-const int noInterval = 0;
-const int lowInterval = 20000; // Set good values for low mid high
-const int midInterval = 30000;
-const int highInterval = 50000; // 21600000 43200000 86400000
+const long noInterval = 0;
+const long lowInterval = 6 * HOUR_IN_MS; 
+const long midInterval = 12 * HOUR_IN_MS;
+const long highInterval = 24 * HOUR_IN_MS; 
 
 bool manualWateringButtonState = false;
 bool waterFlowButtonState = false;
@@ -53,12 +56,10 @@ int waterFlow[] = {noFlow, lowFlow, midFlow, highFlow};
 int timeState = 1; // Default value to handle interrupts
 unsigned long timeValues[] = {noInterval, lowInterval, midInterval,highInterval};
 
-unsigned long previousMillis =
-    millis(); // will store last time automatic watering was triggered
+unsigned long previousMillis = millis(); //default value to avoid instant start
 long interval = 0;
 
 void setup() {
-  Serial.begin(9600);
   pinMode(manualWateringButtonPin, INPUT_PULLUP);
   pinMode(waterFlowButtonPin, INPUT_PULLUP);
   pinMode(statusButtonPin, INPUT_PULLUP);
@@ -77,8 +78,7 @@ void setup() {
 
 void loop() {
   if (digitalRead(statusButtonPin) == LOW) {
-    showWaterFlowStatus();
-    showTimeStatus();
+    showAllStatus();
   }
 
   // Handle water level
@@ -107,7 +107,7 @@ void loop() {
   unsigned long currentMillis = millis();
   interval = timeValues[timeState];
 
-  // If time is equals the given time, do watering
+  // If interval has passed, do watering
   if (timeState > 0 && autoMode == LOW &&
       currentMillis - previousMillis >= interval) {
     previousMillis = currentMillis;
@@ -158,18 +158,16 @@ void writeTimeStateToLeds() {
 }
 
 void writeAllLedLow() {
-
   for (int currentPin = 0; currentPin < numberOfLeds; currentPin++) {
       digitalWrite(allLeds[currentPin], LOW);
   }
-//   digitalWrite(ledPinFlowLow, LOW);
-//   digitalWrite(ledPinFlowMid, LOW);
-//   digitalWrite(ledPinFlowHigh, LOW);
+}
 
-//   digitalWrite(ledPinTimeLow, LOW);
-//   digitalWrite(ledPinTimeMid, LOW);
-//   digitalWrite(ledPinTimeHigh, LOW);
-// }
+void showAllStatus() {
+  writeWaterFlowStateToLeds();
+  writeTimeStateToLeds();
+  delay(statusDelay);
+  writeAllLedLow();
 }
 
 void showWaterFlowStatus() {
