@@ -28,14 +28,14 @@ const int statusButtonPin = 13;        // DIGITAL PIN 13
 const int relayPin = A0;               // ANALOG PIN 0
 
 const long SECOND_IN_MS = 1000;
-const long MINUTE_IN_MS = 60 * SECOND_IN_MS;
-const long HOUR_IN_MS = MINUTE_IN_MS * 60;
+const unsigned long MINUTE_IN_MS = 60 * SECOND_IN_MS;
+const unsigned long HOUR_IN_MS = MINUTE_IN_MS * 60;
 
 const int numberOfStates = 4;
 const int numberOfLeds = 6;
 const int statusDelay = 1500;
 const int noFlow = 0;
-const unsigned long lowFlow = 5 * MINUTE_IN_MS; // Set good values for low mid high
+const unsigned long lowFlow = 1 * MINUTE_IN_MS; // Set good values for low mid high
 const unsigned long midFlow = 15 * MINUTE_IN_MS;
 const unsigned long highFlow = 30 * MINUTE_IN_MS;
 
@@ -51,7 +51,7 @@ bool autoMode = false;
 bool resetButtonState = false;
 
 int waterFlowState = 1; // Default value to handle interrupts when on vacation
-int waterFlow[] = {noFlow, lowFlow, midFlow, highFlow};
+unsigned long waterFlow[] = {noFlow, lowFlow, midFlow, highFlow};
 
 int timeState = 1; // Default value to handle interrupts
 unsigned long timeValues[] = {noInterval, lowInterval, midInterval,highInterval};
@@ -60,6 +60,7 @@ unsigned long previousMillis = millis(); //default value to avoid instant start
 long interval = 0;
 
 void setup() {
+  Serial.begin(9600);
   pinMode(manualWateringButtonPin, INPUT_PULLUP);
   pinMode(waterFlowButtonPin, INPUT_PULLUP);
   pinMode(statusButtonPin, INPUT_PULLUP);
@@ -118,11 +119,12 @@ void loop() {
   manualWateringButtonState = digitalRead(manualWateringButtonPin);
 
   if (manualWateringButtonState == LOW) {
+    Serial.print("Watering!");
     water(waterFlow[waterFlowState]);
   }
 }
 
-void water(int waterAmount) {
+void water(unsigned long waterAmount) {
   digitalWrite(relayPin, HIGH);
   delay(waterAmount); 
   digitalWrite(relayPin, LOW); 
