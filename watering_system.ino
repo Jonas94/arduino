@@ -1,11 +1,9 @@
 /*
  *
- *
  * Automated watering system by Jonas Fredriksson
  * Arduino controlling a water pump via a relay
  * Input is taken from push and flip switches
  * Status is shown by LEDs
- *
  *
  */
 
@@ -25,11 +23,12 @@ int allLeds[] = {ledPinFlowLow, ledPinFlowMid, ledPinFlowHigh,
                  ledPinTimeLow, ledPinTimeMid, ledPinTimeHigh};
 
 const int autoModeButtonPin = 11;      // DIGITAL PIN 11
-const int autoModeResetButtonPin = 12; // DIGITAL PIN 12
+const int resetButtonPin = 12; // DIGITAL PIN 12
 const int statusButtonPin = 13;        // DIGITAL PIN 13
 const int relayPin = A0;               // ANALOG PIN 0
 
-const long MINUTE_IN_MS = 60 * 1000;
+const long SECOND_IN_MS = 1000;
+const long MINUTE_IN_MS = 60 * SECOND_IN_MS;
 const long HOUR_IN_MS = MINUTE_IN_MS * 60;
 
 const int numberOfStates = 4;
@@ -49,6 +48,7 @@ bool manualWateringButtonState = false;
 bool waterFlowButtonState = false;
 bool timeButtonState = false;
 bool autoMode = false;
+bool resetButtonState = false;
 
 int waterFlowState = 1; // Default value to handle interrupts when on vacation
 int waterFlow[] = {noFlow, lowFlow, midFlow, highFlow};
@@ -65,7 +65,7 @@ void setup() {
   pinMode(statusButtonPin, INPUT_PULLUP);
   pinMode(timeButtonPin, INPUT_PULLUP);
   pinMode(autoModeButtonPin, INPUT_PULLUP);
-  pinMode(autoModeResetButtonPin, INPUT_PULLUP);
+  pinMode(resetButtonPin, INPUT_PULLUP);
 
   pinMode(relayPin, OUTPUT);
   pinMode(ledPinFlowLow, OUTPUT);
@@ -123,10 +123,9 @@ void loop() {
 }
 
 void water(int waterAmount) {
-  // Depending on water amount, maybe seconds to run the pump
   digitalWrite(relayPin, HIGH);
-  delay(waterAmount);
-  digitalWrite(relayPin, LOW);
+  delay(waterAmount); 
+  digitalWrite(relayPin, LOW); 
 }
 
 void writeWaterFlowStateToLeds() {
